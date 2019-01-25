@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "serve": "node server.js",
     "test": "test"
   },
   "repository": {
@@ -15,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/ClementEraud/todo-api/issues"
   },
-  "homepage": "https://github.com/ClementEraud/todo-api#readme"
+  "homepage": "https://github.com/ClementEraud/todo-api#readme",
+  "dependencies": {
+    "eslint": "^5.12.1",
+    "graphql": "^14.1.1"
+  }
 }
