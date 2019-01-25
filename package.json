@@ -19,6 +19,8 @@
   "homepage": "https://github.com/ClementEraud/todo-api#readme",
   "dependencies": {
     "eslint": "^5.12.1",
+    "express": "^4.16.4",
+    "express-graphql": "^0.7.1",
     "graphql": "^14.1.1"
   }
 }
