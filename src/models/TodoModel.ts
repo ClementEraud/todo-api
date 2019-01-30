@@ -9,10 +9,9 @@ const TodoSchema = new Schema({
 
 export const TodoModel = model("Todo", TodoSchema);
 
-
 // GraphQL schema and root
 
-// methods
+// Methods Implementation
 const standardCallback = (err: Error, res: any) => {
   if (err) {
     console.error(err);
@@ -21,7 +20,7 @@ const standardCallback = (err: Error, res: any) => {
   return res;
 };
 
-const getAll = () => TodoModel.find(standardCallback);
+const getAllTodos = () => TodoModel.find(standardCallback);
 
 const getTodoById = ({ id }: { id: String }) => {
   if (id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -31,7 +30,19 @@ const getTodoById = ({ id }: { id: String }) => {
   }
 };
 
-// declaration
+const createTodo = async ({ newTodo }: any) => {
+  const todo = new TodoModel(newTodo);
+
+  try {
+    await todo.save();
+    return todo;
+  } catch (err) {
+    console.error(err);
+    return err;
+  }
+};
+
+// Schema Declaration
 export const todoSchema = buildSchema(`
     type Todo {
         _id: ID,
@@ -40,26 +51,23 @@ export const todoSchema = buildSchema(`
     }
 
     type Query {
-        getAll: [Todo],
+        getAllTodos: [Todo],
         getTodoById(id: ID): Todo
+    }
+
+    input TodoInput {
+        title: String,
+        description: String
+    }
+
+    type Mutation {
+        createTodo(newTodo: TodoInput): Todo
     }
 `);
 
+//Root Declaration
 export const todoRoot = {
-  getAll: getAll,
-  getTodoById: getTodoById
-};
-
-
-// Temp func adds 2 todos at start
-export const initTodos = () => {
-  TodoModel.create({
-    title: "Item 1",
-    description: "do item 1"
-  });
-
-  TodoModel.create({
-    title: "Item 2",
-    description: "do item 2"
-  });
+  getAllTodos: getAllTodos,
+  getTodoById: getTodoById,
+  createTodo: createTodo
 };
