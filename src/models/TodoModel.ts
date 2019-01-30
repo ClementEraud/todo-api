@@ -1,5 +1,16 @@
 import { Schema, model } from "mongoose";
 import { buildSchema } from "graphql";
+import { checkID } from '../utils';
+
+interface TodoParams {
+  id ?: string,
+  newTodo ?: TodoInput
+}
+
+interface TodoInput {
+  title: string,
+  description: string
+}
 
 //MongoDB Model
 const TodoSchema = new Schema({
@@ -22,15 +33,15 @@ const standardCallback = (err: Error, res: any) => {
 
 const getAllTodos = () => TodoModel.find(standardCallback);
 
-const getTodoById = ({ id }: { id: String }) => {
-  if (id.match(/^[0-9a-fA-F]{24}$/)) {
+const getTodoById = ({ id }: { id: string }) => {
+  if (checkID(id)) {
     return TodoModel.findById(id, standardCallback);
   } else {
     return "Not a valid ObjectID";
   }
 };
 
-const createTodo = async ({ newTodo }: any) => {
+const createTodo = async ({ newTodo }: TodoParams) => {
   const todo = new TodoModel(newTodo);
 
   try {
@@ -42,10 +53,10 @@ const createTodo = async ({ newTodo }: any) => {
   }
 };
 
-const updateTodo = ({ id, newTodo }: any) => {
-  if (id.match(/^[0-9a-fA-F]{24}$/)) {
-    return TodoModel.findOneAndUpdate(
-      { _id: id },
+const updateTodo = ({ id, newTodo }: TodoParams) => {
+  if (checkID(id)) {
+    return TodoModel.findByIdAndUpdate(
+      id,
       newTodo,
       { new: true },
       standardCallback
@@ -54,6 +65,14 @@ const updateTodo = ({ id, newTodo }: any) => {
     return "Not a valid ObjectID";
   }
 };
+
+const deleteTodo = ({ id }: TodoParams) => {
+  if (checkID(id)) {
+    return TodoModel.findByIdAndDelete(id, standardCallback);
+  } else {
+    return "Not a valid ObjectID";
+  }
+}
 
 // Schema Declaration
 export const todoSchema = buildSchema(`
@@ -75,7 +94,8 @@ export const todoSchema = buildSchema(`
 
     type Mutation {
         createTodo(newTodo: TodoInput): Todo,
-        updateTodo(id: ID, newTodo: TodoInput): Todo
+        updateTodo(id: ID, newTodo: TodoInput): Todo,
+        deleteTodo(id: ID): String
     }
 `);
 
@@ -84,5 +104,6 @@ export const todoRoot = {
   getAllTodos: getAllTodos,
   getTodoById: getTodoById,
   createTodo: createTodo,
-  updateTodo: updateTodo
+  updateTodo: updateTodo,
+  deleteTodo: deleteTodo
 };
