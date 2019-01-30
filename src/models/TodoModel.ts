@@ -42,6 +42,19 @@ const createTodo = async ({ newTodo }: any) => {
   }
 };
 
+const updateTodo = ({ id, newTodo }: any) => {
+  if (id.match(/^[0-9a-fA-F]{24}$/)) {
+    return TodoModel.findOneAndUpdate(
+      { _id: id },
+      newTodo,
+      { new: true },
+      standardCallback
+    );
+  } else {
+    return "Not a valid ObjectID";
+  }
+};
+
 // Schema Declaration
 export const todoSchema = buildSchema(`
     type Todo {
@@ -61,7 +74,8 @@ export const todoSchema = buildSchema(`
     }
 
     type Mutation {
-        createTodo(newTodo: TodoInput): Todo
+        createTodo(newTodo: TodoInput): Todo,
+        updateTodo(id: ID, newTodo: TodoInput): Todo
     }
 `);
 
@@ -69,5 +83,6 @@ export const todoSchema = buildSchema(`
 export const todoRoot = {
   getAllTodos: getAllTodos,
   getTodoById: getTodoById,
-  createTodo: createTodo
+  createTodo: createTodo,
+  updateTodo: updateTodo
 };
