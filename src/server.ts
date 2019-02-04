@@ -24,8 +24,8 @@ app.use(
   graphqlHTTP({
     schema: userSchema,
     rootValue: userRoot,
-    graphiql: true,
+    graphiql: true
   })
 );
 
-app.listen(4000, () => console.log("Now browse to localhost:4000/todo"));
+app.listen(4000, () => console.log("Now browse to localhost:4000/user"));
