@@ -118,9 +118,13 @@ export const userRoot = {
     );
   },
   deleteTodo: ({ userID, todoID }: TodoParams) => {
-    return UserModel.findByIdAndUpdate(userID, {
-      $pull: { todos: { _id: todoID } }
-    }, (_err, user) => user);
+    return UserModel.findByIdAndUpdate(
+      userID,
+      {
+        $pull: { todos: { _id: todoID } }
+      },
+      (_err, user) => user
+    );
   },
   updateTodo: ({ userID, todoID, newTodo }: TodoParams) => {
     return UserModel.findOneAndUpdate(
@@ -131,11 +135,7 @@ export const userRoot = {
           "todos.$.description": newTodo.description
         }
       },
-      (_err, user: User) => {
-        console.error(_err);
-        console.error(user);
-        return user;
-      }
+      (_err, user: User) => user
     );
   }
 };
