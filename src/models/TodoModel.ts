@@ -1,24 +1,24 @@
 import { Schema, model } from "mongoose";
 import { buildSchema } from "graphql";
-import { checkID } from '../utils';
+import { checkID } from "../utils";
 
 interface TodoParams {
-  id ?: string,
-  newTodo ?: TodoInput
+  id?: string;
+  newTodo?: TodoInput;
 }
 
 interface TodoInput {
-  title: string,
-  description: string
+  title: string;
+  description: string;
 }
 
-//MongoDB Model
+// MongoDB Model
 const TodoSchema = new Schema({
   title: String,
   description: String
 });
 
-export const TodoModel = model("Todo", TodoSchema);
+const TodoModel = model("Todo", TodoSchema);
 
 // GraphQL schema and root
 
@@ -72,7 +72,7 @@ const deleteTodo = ({ id }: TodoParams) => {
   } else {
     return "Not a valid ObjectID";
   }
-}
+};
 
 // Schema Declaration
 export const todoSchema = buildSchema(`

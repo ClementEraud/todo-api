@@ -3,6 +3,7 @@ import * as express from "express";
 import * as graphqlHTTP from "express-graphql";
 import { todoSchema, todoRoot } from "./models/TodoModel";
 import * as cors from "cors";
+import { userSchema, userRoot } from "./models/UserModel";
 
 dbConnection();
 
@@ -15,6 +16,15 @@ app.use(
     schema: todoSchema,
     rootValue: todoRoot,
     graphiql: true
+  })
+);
+
+app.use(
+  "/user",
+  graphqlHTTP({
+    schema: userSchema,
+    rootValue: userRoot,
+    graphiql: true,
   })
 );
 
