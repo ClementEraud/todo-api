@@ -26,7 +26,6 @@
     "@types/graphql": "^14.0.5",
     "@types/mongoose": "^5.3.10",
     "@types/node": "^10.12.19",
-    "async": "^2.6.1",
     "cors": "^2.8.5",
     "eslint": "^5.12.1",
     "express": "^4.16.4",

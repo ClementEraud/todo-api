@@ -1,6 +1,5 @@
 import { Schema, model, Document } from "mongoose";
 import { buildSchema } from "graphql";
-import { waterfall } from 'async';
 
 interface User extends Document {
   login: string;
@@ -94,7 +93,8 @@ export const userSchema = buildSchema(`
     type Mutation {
         createUser(newUser: UserInput): User,
         createTodo(userID: ID, newTodo: TodoInput): User,
-        deleteTodo(userID: ID, todoID: ID): User
+        deleteTodo(userID: ID, todoID: ID): User,
+        updateTodo(userID: ID, todoID: ID, newTodo: TodoInput): User
     }
 `);
 
@@ -109,18 +109,33 @@ export const userRoot = {
     return await UserModel.create(newUser);
   },
   createTodo: ({ userID, newTodo }: TodoParams) => {
-    return UserModel.findByIdAndUpdate(userID, {
-        $push: {todos: newTodo}
-    }, (_err: Error, user: User) => user)
+    return UserModel.findByIdAndUpdate(
+      userID,
+      {
+        $push: { todos: newTodo }
+      },
+      (_err: Error, user: User) => user
+    );
   },
-  deleteTodo: ({userID, todoID}: TodoParams) => {
-      waterfall([
-        (next: Function) => UserModel.findById(userID, next),
-        (user: User, next: Function) => {
-            const newTodos = user.todos.filter(todo => todo._id != todoID);
-            return next(null, newTodos);
-        },
-        (newTodos: Todo[], next: any) =>  UserModel.findByIdAndUpdate(userID, {todos: newTodos}, next)
-      ], (_err, res) => res)
+  deleteTodo: ({ userID, todoID }: TodoParams) => {
+    return UserModel.findByIdAndUpdate(userID, {
+      $pull: { todos: { _id: todoID } }
+    }, (_err, user) => user);
+  },
+  updateTodo: ({ userID, todoID, newTodo }: TodoParams) => {
+    return UserModel.findOneAndUpdate(
+      { _id: userID, "todos._id": todoID },
+      {
+        $set: {
+          "todos.$.title": newTodo.title,
+          "todos.$.description": newTodo.description
+        }
+      },
+      (_err, user: User) => {
+        console.error(_err);
+        console.error(user);
+        return user;
+      }
+    );
   }
 };
