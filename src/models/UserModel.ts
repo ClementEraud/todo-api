@@ -1,8 +1,9 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, HookNextFunction } from "mongoose";
 import { buildSchema } from "graphql";
+import * as bcrypt from "bcrypt";
 
 interface User extends Document {
-  login: string;
+  username: string;
   password: string;
   todos?: [Todo];
 }
@@ -13,7 +14,7 @@ interface UserParams {
 }
 
 interface UserInput {
-  login: string;
+  username: string;
   password: string;
 }
 
@@ -36,8 +37,8 @@ interface TodoInput {
 
 //MongoDB Model
 const UserSchema = new Schema({
-  login: String,
-  password: String,
+  username: { type: String, required: true, index: { unique: true } },
+  password: { type: String, required: true },
   todos: [
     {
       title: String,
@@ -46,20 +47,28 @@ const UserSchema = new Schema({
   ]
 });
 
-const UserModel = model("User", UserSchema);
+UserSchema.pre("save", function(next: HookNextFunction) {
+  const user: User = <User>this;
+  const SALT_WORK_FACTOR = 10;
+  // only hash the password if it has been modified (or is new)
+  if (!user.isModified("password")) return next();
 
-export const initUser = () => {
-  UserModel.create({
-    login: "login",
-    password: "password",
-    todos: [
-      {
-        title: "Item 1",
-        description: "do Item 1"
-      }
-    ]
+  // generate a salt
+  bcrypt.genSalt(SALT_WORK_FACTOR, function(err: Error, salt: string) {
+    if (err) return next(err);
+
+    // hash the password along with our new salt
+    bcrypt.hash(user.password, salt, function(err: Error, hash: string) {
+      if (err) return next(err);
+
+      // override the cleartext password with the hashed one
+      user.password = hash;
+      next();
+    });
   });
-};
+});
+
+const UserModel = model("User", UserSchema);
 
 export const userSchema = buildSchema(`
     type Todo {
@@ -70,18 +79,18 @@ export const userSchema = buildSchema(`
 
     type User {
         _id: ID,
-        login: String,
+        username: String,
         password: String,
         todos: [Todo]
     }
 
     type Query {
-        login(login: String, password: String): User
+        login(username: String, password: String): User
         findById(_id: ID): User
     }
 
     input UserInput {
-        login: String,
+        username: String,
         password: String
     }
 
@@ -99,8 +108,19 @@ export const userSchema = buildSchema(`
 `);
 
 export const userRoot = {
-  login: async ({ login, password }: { login: string; password: string }) => {
-    return await UserModel.findOne({ login: login, password: password });
+  login: async ({ username, password }: UserInput) => {
+    try {
+      const user: User = <User>await UserModel.findOne({ username: username });
+
+      const same: boolean = await bcrypt.compare(password, user.password);
+
+      if (!same) throw new Error("Wrong Password");
+
+      return user;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   },
   findById: async ({ _id }: UserParams) => {
     return await UserModel.findById(_id);
