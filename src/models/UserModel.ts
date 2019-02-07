@@ -111,7 +111,6 @@ export const userRoot = {
   login: async ({ username, password }: UserInput) => {
     try {
       const user: User = <User>await UserModel.findOne({ username: username });
-
       const same: boolean = await bcrypt.compare(password, user.password);
 
       if (!same) throw new Error("Wrong Password");
@@ -128,26 +127,28 @@ export const userRoot = {
   createUser: async ({ newUser }: UserParams) => {
     return await UserModel.create(newUser);
   },
-  createTodo: ({ userID, newTodo }: TodoParams) => {
-    return UserModel.findByIdAndUpdate(
+  createTodo: async ({ userID, newTodo }: TodoParams) => {
+    return await UserModel.findByIdAndUpdate(
       userID,
       {
         $push: { todos: newTodo }
       },
-      (_err: Error, user: User) => user
-    );
+      {
+        new: true,
+      });
   },
-  deleteTodo: ({ userID, todoID }: TodoParams) => {
-    return UserModel.findByIdAndUpdate(
+  deleteTodo: async ({ userID, todoID }: TodoParams) => {
+    return await UserModel.findByIdAndUpdate(
       userID,
       {
         $pull: { todos: { _id: todoID } }
       },
-      (_err, user) => user
-    );
+      {
+        new: true
+      });
   },
-  updateTodo: ({ userID, todoID, newTodo }: TodoParams) => {
-    return UserModel.findOneAndUpdate(
+  updateTodo: async ({ userID, todoID, newTodo }: TodoParams) => {
+    return await UserModel.findOneAndUpdate(
       { _id: userID, "todos._id": todoID },
       {
         $set: {
@@ -155,7 +156,8 @@ export const userRoot = {
           "todos.$.description": newTodo.description
         }
       },
-      (_err, user: User) => user
-    );
+      {
+        new: true
+      });
   }
 };
